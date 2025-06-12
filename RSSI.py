@@ -40,9 +40,16 @@ class BluetoothScannerThread(QThread):
             result[device.address] = (device, adv)
 
         scanner = BleakScanner(detection_callback=_cb, return_adv=True)
-        await scanner.start()
-        await asyncio.sleep(timeout)
-        await scanner.stop()
+        try:
+            await scanner.start()
+            await asyncio.sleep(timeout)
+            await scanner.stop()
+
+            # ✅ Give WinRT backend some time to finish callbacks before loop closes
+            await asyncio.sleep(0.1)
+        except Exception as e:
+            print("Scan error:", e)
+
         return result
 
 class BluetoothRSSIApp(QMainWindow):
